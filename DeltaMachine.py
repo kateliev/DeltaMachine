@@ -25,7 +25,7 @@ from typerig.node import eNode
 from typerig.gui import getProcessGlyphs
 from typerig.brain import coordArray, linInterp, ratfrac
 
-from lib.transform import adaptive_scaleXY
+from lib import transform
 from typerig.gui import trSliderCtrl, trMsgSimple
 
 
