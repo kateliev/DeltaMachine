@@ -327,6 +327,7 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		self.data_stems = {}
 		self.ratio_source = {}
 		self.ratio_target = {}
+		self.italic_angle = 0
 		
 		# - Basic Widgets
 		# -- Master table
@@ -717,7 +718,10 @@ class dlg_DeltaMachine(QtGui.QDialog):
 			dx, dy = 0.0, 0.0 # shift X, Y
 
 			# - Build
-			mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scaleXY([a.x, a.y], [b.x, b.y], sx, sy, dx, dy, tx, ty, scmp[0], scmp[1], angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
+			# -- Numpy
+			#mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scale_array([a.x, a.y], [b.x, b.y], sx, sy, dx, dy, tx, ty, scmp[0], scmp[1], angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
+			# -- Native
+			mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scale_array([(a[i], b[i]) for i in range(len(a))], (sx, sy), (dx, dy), (tx, ty), (scmp[0], scmp[1]), angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
 
 			if anisotropic:
 				# - Dual axis mixer - anisotropic 
