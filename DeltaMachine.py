@@ -674,7 +674,7 @@ class dlg_DeltaMachine(QtGui.QDialog):
 			
 			# - Italic Angle
 			if self.chk_italic.isChecked():
-				angle = radians(-float(self.italic_angle))
+				angle = radians(float(self.italic_angle))
 			else:
 				angle = 0
 			
