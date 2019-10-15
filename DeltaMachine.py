@@ -30,7 +30,7 @@ from typerig.gui import trSliderCtrl, trMsgSimple
 
 
 # - Init --------------------------------
-app_version = '0.17'
+app_version = '0.19'
 app_name = 'TypeRig | Delta Machine'
 
 ss_controls = """
@@ -308,6 +308,15 @@ class WTableView(QtGui.QTableWidget):
 		
 		return data_row
 
+	def lockTable(self):
+		for col in range(self.columnCount):
+			for row in range(self.rowCount):
+				try:
+					self.cellWidget(row, col).setEnabled(not self.cellWidget(row, col).isEnabled())
+				except AttributeError:
+					pass
+
+
 	def markChange(self, item):
 		item.setBackground(QtGui.QColor('powderblue'))
 
@@ -341,6 +350,7 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		# -- Buttons
 		self.btn_execute = QtGui.QPushButton('Execute transformation')
 		self.btn_tableRefresh = QtGui.QPushButton('Reset')
+		self.chk_tableLock = QtGui.QPushButton('Lock')
 		self.btn_tableSave = QtGui.QPushButton('Save')
 		self.btn_tableLoad = QtGui.QPushButton('Load')
 		self.btn_getVstems = QtGui.QPushButton('Get V-stems')
@@ -363,6 +373,7 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		self.btn_tableSave.clicked.connect(self.file_save_deltas) 
 		self.btn_tableLoad.clicked.connect(self.file_load_deltas) 
 		self.btn_execute.clicked.connect(self.table_execute)
+		self.chk_tableLock.clicked.connect(lambda: self.tab_masters.lockTable())
 
 		self.btn_getPart.clicked.connect(lambda: self.get_ratio(True))
 		self.btn_getWhole.clicked.connect(lambda: self.get_ratio(False))
@@ -383,6 +394,7 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		self.chk_preview = QtGui.QPushButton('Live Preview')
 		self.chk_boundry = QtGui.QPushButton('Fix Boundry')
 		self.chk_single.setToolTip('Active: Use X and Y to control interpolation.')
+		self.chk_tableLock.setCheckable(True)
 		self.chk_single.setCheckable(True)
 		self.chk_italic.setCheckable(True)
 		self.chk_preview.setCheckable(True)
@@ -424,8 +436,9 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		layoutV = QtGui.QGridLayout() 
 		layoutV.addWidget(QtGui.QLabel('Preferences:'), 	0, 0, 1, 1)
 		layoutV.addWidget(self.btn_tableCheck, 				0, 1, 1, 2)
-		layoutV.addWidget(self.btn_tableSave, 				0, 3, 1, 1)
-		layoutV.addWidget(self.btn_tableLoad, 				0, 4, 1, 4)
+		layoutV.addWidget(self.chk_tableLock, 				0, 3, 1, 2)
+		layoutV.addWidget(self.btn_tableSave, 				0, 5, 1, 1)
+		layoutV.addWidget(self.btn_tableLoad, 				0, 6, 1, 2)
 		layoutV.addWidget(self.btn_tableRefresh, 			0, 8, 1, 1)
 		layoutV.addWidget(QtGui.QLabel('Source:'),			0, 10, 1, 1, QtCore.Qt.AlignRight)
 		layoutV.addWidget(self.btn_getVstems, 				0, 11, 1, 2)
@@ -438,8 +451,8 @@ class dlg_DeltaMachine(QtGui.QDialog):
 
 
 		layoutV.addWidget(QtGui.QLabel('Master data:'), 	1, 0, 1, 1)
-		layoutV.addWidget(self.cmb_infoArrays, 				1, 1, 1, 2)
-		layoutV.addWidget(self.btn_getArrays, 				1, 3, 1, 6)
+		layoutV.addWidget(self.cmb_infoArrays, 				1, 1, 1, 4)
+		layoutV.addWidget(self.btn_getArrays, 				1, 5, 1, 4)
 		layoutV.addWidget(QtGui.QLabel('Target:'),			1, 10, 1, 1, QtCore.Qt.AlignRight)
 		layoutV.addWidget(self.btn_getTx, 					1, 11, 1, 2)
 		layoutV.addWidget(self.btn_getTy, 					1, 13, 1, 2)
@@ -568,28 +581,29 @@ class dlg_DeltaMachine(QtGui.QDialog):
 
 	# - Sliders operations
 	def set_sliders(self):
-		data = self.tab_masters.getRow()
+		if self.chk_preview.isChecked():
+			data = self.tab_masters.getRow()
 
-		self.mixer_dx.edt_0.setText(data[3])
-		self.mixer_dx.edt_1.setText(data[4])
-		self.mixer_dx.edt_pos.setText(data[7])
+			self.mixer_dx.edt_0.setText(data[3])
+			self.mixer_dx.edt_1.setText(data[4])
+			self.mixer_dx.edt_pos.setText(data[7])
 
-		self.mixer_dy.edt_0.setText(data[5])
-		self.mixer_dy.edt_1.setText(data[6])
-		self.mixer_dy.edt_pos.setText(data[8])
+			self.mixer_dy.edt_0.setText(data[5])
+			self.mixer_dy.edt_1.setText(data[6])
+			self.mixer_dy.edt_pos.setText(data[8])
 
-		self.scaler_dx.edt_0.setText(0)
-		self.scaler_dx.edt_1.setText(200)
-		self.scaler_dx.edt_pos.setText(data[9])
+			self.scaler_dx.edt_0.setText(0)
+			self.scaler_dx.edt_1.setText(200)
+			self.scaler_dx.edt_pos.setText(data[9])
 
-		self.scaler_dy.edt_0.setText(0)
-		self.scaler_dy.edt_1.setText(200)
-		self.scaler_dy.edt_pos.setText(data[10])
+			self.scaler_dy.edt_0.setText(0)
+			self.scaler_dy.edt_1.setText(200)
+			self.scaler_dy.edt_pos.setText(data[10])
 
-		self.mixer_dx.refreshSlider()
-		self.mixer_dy.refreshSlider()
-		self.scaler_dx.refreshSlider()
-		self.scaler_dy.refreshSlider()
+			self.mixer_dx.refreshSlider()
+			self.mixer_dy.refreshSlider()
+			self.scaler_dx.refreshSlider()
+			self.scaler_dy.refreshSlider()
 
 	def get_ratio(self, target=False):
 		glyph = eGlyph()
@@ -613,20 +627,21 @@ class dlg_DeltaMachine(QtGui.QDialog):
 				if height:
 					ratio_height = ratfrac(self.ratio_target[layerName].height(), self.ratio_source[layerName].height(), 100)
 					
-					if modifiers == QtCore.Qt.ShiftModifier: 
-						ratio_height = 2*100. - ratio_height # Reverse ratio
+					if modifiers == QtCore.Qt.ShiftModifier: # Reverse ratio
+						ratio_height = ratfrac(self.ratio_source[layerName].height(), self.ratio_target[layerName].height(), 100) # Reverse ratio
 
 					elif modifiers == QtCore.Qt.AltModifier:
-						ratio_height = 100 + target - ratio_height # Reverse ratio
+						ratio_height = 100 + target - ratio_height # Target ratio
 					
 					self.tab_masters.cellWidget(row, 10).setValue(ratio_height)
 				else:
 					ratio_width = ratfrac(self.ratio_target[layerName].width(), self.ratio_source[layerName].width(), 100)
-					if modifiers == QtCore.Qt.ShiftModifier: 
-						ratio_width = 2*100. - ratio_width # Reverse ratio
+					
+					if modifiers == QtCore.Qt.ShiftModifier: # Reverse ratio
+						ratio_width = ratfrac(self.ratio_source[layerName].width(), self.ratio_target[layerName].width(), 100)
 						
 					elif modifiers == QtCore.Qt.AltModifier:
-						ratio_width = 100 + target - ratio_width # Reverse ratio
+						ratio_width = 100 + target - ratio_width # Target ratio
 
 					self.tab_masters.cellWidget(row, 9).setValue(ratio_width)
 
