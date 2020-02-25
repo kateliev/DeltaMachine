@@ -30,7 +30,7 @@ from typerig.gui import trSliderCtrl, trMsgSimple
 
 
 # - Init --------------------------------
-app_version = '0.19'
+app_version = '0.20'
 app_name = 'TypeRig | Delta Machine'
 
 ss_controls = """
@@ -488,6 +488,10 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		self.setWindowTitle('%s %s' %(app_name, app_version))
 		self.setGeometry(300, 300, 1150, 700)
 		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # Always on top!!
+
+		# !!! Hotfix FL7 7355 
+		self.setMinimumSize(980,self.sizeHint.height())
+
 		self.show()
 
 	# - Functions ------------------------------------------------------------
