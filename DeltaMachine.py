@@ -30,7 +30,7 @@ from typerig.gui import trSliderCtrl, trMsgSimple
 
 
 # - Init --------------------------------
-app_version = '0.20'
+app_version = '0.21'
 app_name = 'TypeRig | Delta Machine'
 
 ss_controls = """
@@ -739,8 +739,10 @@ class dlg_DeltaMachine(QtGui.QDialog):
 			# - Build
 			# -- Numpy
 			#mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scale_array([a.x, a.y], [b.x, b.y], sx, sy, dx, dy, tx, ty, scmp[0], scmp[1], angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
+			
 			# -- Native
-			mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scale_array([(a[i], b[i]) for i in range(len(a))], (sx, sy), (dx, dy), (tx, ty), (scmp[0], scmp[1]), angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
+			joined_array = zip(a.asPairs(), b.asPairs())
+			mm_scaler = lambda sx, sy, tx, ty : transform.adaptive_scale_array(joined_array, (sx, sy), (dx, dy), (tx, ty), (scmp[0], scmp[1]), angle, [sw_dx0, sw_dx1, sw_dy0, sw_dy1])
 
 			if anisotropic:
 				# - Dual axis mixer - anisotropic 
