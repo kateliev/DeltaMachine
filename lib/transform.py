@@ -11,7 +11,7 @@
 # No warranties. By using this you agree
 # that you use it at your own risk!
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 # - Dependencies ------------------------
 from math import radians
@@ -27,6 +27,38 @@ def compensator(sf, cf, st0, st1):
 
 def lerp(t0, t1, t):
 	return (t1 - t0)*t + t0
+
+def adjuster(v, s, t, idx):
+	''' Readjust scale factor based on interpolation time
+	Args:
+		v(t0, t1) -> list(tuple((float, float), (float, float))...) : Joined coordinate arrays for both weights
+		s(sx, sy) -> tuple((float, float) : Scale factors (X, Y)
+		t(tx, ty) -> tuple((float, float) : Interpolation times (anisotropic X, Y) 
+		idx -> Int : Current width index
+
+	Returns:
+		tuple(float, float): Readjusted scale factors
+	'''
+	# Helper
+	diff = lambda l, i: max(l, key= lambda x:x[i])[i] - min(l, key= lambda x:x[i])[i] 
+
+	# Coordinates (x0, y0) (x1, y1)
+	v0, v1 = [], []
+
+	for i in v:
+		v0.append(i[0])
+		v1.append(i[1])
+
+	sx, sy = s 		# Scale X, Y
+	tx, ty = t 		# Interpolate time tx, ty
+
+	w0, w1 = diff(v0, 0), diff(v1, 0) # Widths
+	h0, h1 = diff(v0, 1), diff(v1, 1) # Heights
+
+	wtx = lerp(w0, w1, tx)	# Interpolated width
+	hty = lerp(h0, h1, ty)	# Interpolated height
+
+	return (sx*[w0,w1][idx]/wtx, sy*[h0,h1][idx]/hty)
 
 # -- Adaptive scaling --------------------------------------------
 # Based on: A Multiple Master based method for scaling glyphs without changing the stroke characteristics
@@ -86,4 +118,5 @@ def adaptive_scale_array(a, s, d, t, c, i, st):
 	Returns:
 		list(tuple(float, float)): Transformed coordinate data
 	'''
+	#print s, adjuster(a, s, t, 0), adjuster(a, s, t, 1)
 	return list(map(lambda a_i: adaptive_scale(a_i, s, d, t, c, i, st), a))
