@@ -11,12 +11,15 @@
 # No warranties. By using this you agree
 # that you use it at your own risk!
 
-__version__ = '0.0.3'
+__version__ = '0.0.6'
 
 # - Dependencies ------------------------
 from math import radians
 
 # - Functions ---------------------------
+def lerp(t0, t1, t):
+	return (t1 - t0)*t + t0
+
 def compensator(sf, cf, st0, st1):
 	b = float(st1)/st0
 	try:
@@ -25,22 +28,38 @@ def compensator(sf, cf, st0, st1):
 		q = 0
 	return q
 
-def lerp(t0, t1, t):
-	return (t1 - t0)*t + t0
+def timer(sw_c, sw_0, sw_1, fix_boundry=False):
+	'''Get Interpolation time for stem value withing given interval.
+	Args:
+		sw_c -> Float : Target stem value
+		sw_0, sw_1 -> Float : Stem values
+	Returns:
+		t -> Float : Interpolation time
+	'''
+	if fix_boundry and sw_c == sw_1: sw_1 += 1. # !!! Very crude boundry error fix
 
-def adjuster(v, s, t, idx):
+	try:
+		t = (float(sw_c - sw_0)/(sw_1 - sw_0))*(1,-1)[sw_0 > sw_1] + (0,1)[sw_0 > sw_1]
+	except ZeroDivisionError:
+		t = 0.
+
+	return t
+
+def adjuster(v, s, t, st):
 	''' Readjust scale factor based on interpolation time
 	Args:
 		v(t0, t1) -> list(tuple((float, float), (float, float))...) : Joined coordinate arrays for both weights
 		s(sx, sy) -> tuple((float, float) : Scale factors (X, Y)
 		t(tx, ty) -> tuple((float, float) : Interpolation times (anisotropic X, Y) 
+		st(stx0, stx1, sty0, sty1) -> tuple((float, float, float, float) : Stems widths for weights t0, t1
 		idx -> Int : Current width index
 
 	Returns:
 		tuple(float, float): Readjusted scale factors
 	'''
+	
 	# Helper
-	diff = lambda l, i: max(l, key= lambda x:x[i])[i] - min(l, key= lambda x:x[i])[i] 
+	diff = lambda l, i: max(l, key=lambda x:x[i])[i] - min(l, key=lambda x:x[i])[i] 
 
 	# Coordinates (x0, y0) (x1, y1)
 	v0, v1 = [], []
@@ -49,16 +68,22 @@ def adjuster(v, s, t, idx):
 		v0.append(i[0])
 		v1.append(i[1])
 
-	sx, sy = s 		# Scale X, Y
-	tx, ty = t 		# Interpolate time tx, ty
+	sx, sy = s 							# Scale X, Y
+	tx, ty = t 							# Interpolate time tx, ty
+	stx0, stx1, sty0, sty1 = st 		# Stem Values
 
-	w0, w1 = diff(v0, 0), diff(v1, 0) # Widths
-	h0, h1 = diff(v0, 1), diff(v1, 1) # Heights
+	w0, w1 = diff(v0, 0), diff(v1, 0) 	# Widths
+	h0, h1 = diff(v0, 1), diff(v1, 1) 	# Heights
 
-	wtx = lerp(w0, w1, tx)	# Interpolated width
-	hty = lerp(h0, h1, ty)	# Interpolated height
+	bx = float(stx1)/stx0				# Stem ratio X
+	by = float(sty1)/sty0				# Stem ratio Y
+	wtx = lerp(w0, w1, tx)				# Interpolated width
+	hty = lerp(h0, h1, ty)				# Interpolated height
 
-	return (sx*[w0,w1][idx]/wtx, sy*[h0,h1][idx]/hty)
+	spx = float(wtx - w1 - w0*sx*(1-bx))/(bx*wtx - w1) #w0*sx = target width
+	spy = float(hty - h1 - h0*sy*(1-by))/(by*hty - h1)
+
+	return spx, spy
 
 # -- Adaptive scaling --------------------------------------------
 # Based on: A Multiple Master based method for scaling glyphs without changing the stroke characteristics
@@ -118,5 +143,5 @@ def adaptive_scale_array(a, s, d, t, c, i, st):
 	Returns:
 		list(tuple(float, float)): Transformed coordinate data
 	'''
-	#print s, adjuster(a, s, t, 0), adjuster(a, s, t, 1)
+	#print s, t, adjuster(a, s, t, st)
 	return list(map(lambda a_i: adaptive_scale(a_i, s, d, t, c, i, st), a))

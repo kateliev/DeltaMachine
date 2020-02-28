@@ -30,7 +30,7 @@ from typerig.gui import trSliderCtrl, trMsgSimple
 
 
 # - Init --------------------------------
-app_version = '0.21'
+app_version = '0.22'
 app_name = 'TypeRig | Delta Machine'
 
 ss_controls = """
@@ -698,8 +698,8 @@ class dlg_DeltaMachine(QtGui.QDialog):
 				angle = 0
 			
 			# - Stems
-			sw_dx = (float(config_data[3]), float(config_data[4]))
-			sw_dy = (float(config_data[5]), float(config_data[6]))			
+			sw_dx = [float(config_data[3]), float(config_data[4])]
+			sw_dy = [float(config_data[5]), float(config_data[6])]
 
 			if live_update:
 				curr_sw_dx = float(self.mixer_dx.sld_axis.value)
@@ -707,31 +707,21 @@ class dlg_DeltaMachine(QtGui.QDialog):
 			else:
 				curr_sw_dx = float(config_data[7])
 				curr_sw_dy = float(config_data[8])
-			
-			sw_dx0, sw_dx1 = min(*sw_dx), max(*sw_dx)
-			sw_dy0, sw_dy1 = min(*sw_dy), max(*sw_dy)
 
-			# !!! Very crude boundry error fix
-			if self.chk_boundry.isChecked() and curr_sw_dx == sw_dx1: sw_dx1 += 1
-			if self.chk_boundry.isChecked() and curr_sw_dy == sw_dy1: sw_dy1 += 1
-			
-			# - Interpolation
-			try:
-				tx = ((curr_sw_dx - sw_dx0)/(sw_dx1 - sw_dx0))*(1,-1)[sw_dx[0] > sw_dx[1]] + (0,1)[sw_dx[0] > sw_dx[1]]
-			except ZeroDivisionError:
-				tx = 0.
-
-			try:
-				ty = ((curr_sw_dy - sw_dy0)/(sw_dy1 - sw_dy0))*(1,-1)[sw_dy[0] > sw_dy[1]] + (0,1)[sw_dy[0] > sw_dy[1]]
-			except ZeroDivisionError:
-				ty = 0.			
+			# - Stem values
+			sw_dx0, sw_dx1 = sorted(sw_dx)
+			sw_dy0, sw_dy1 = sorted(sw_dy)
+		
+			# - Interpolation times
+			tx = transform.timer(curr_sw_dx, sw_dx0, sw_dx1, self.chk_boundry.isChecked())
+			ty = transform.timer(curr_sw_dy, sw_dy0, sw_dy1, self.chk_boundry.isChecked())
 
 			# - Scaling
 			if live_update:
 				sx = 100./float(self.scaler_dx.edt_1.text) + float(self.scaler_dx.sld_axis.value)/float(self.scaler_dx.edt_1.text)
 				sy = 100./float(self.scaler_dy.edt_1.text) + float(self.scaler_dy.sld_axis.value)/float(self.scaler_dy.edt_1.text)
 			else:
-				sx = float(config_data[9])/100 # scale X
+				sx = float(config_data[9])/100 	# scale X
 				sy = float(config_data[10])/100 # scale Y
 			
 			dx, dy = 0.0, 0.0 # shift X, Y
