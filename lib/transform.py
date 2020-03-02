@@ -11,7 +11,7 @@
 # No warranties. By using this you agree
 # that you use it at your own risk!
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 # - Dependencies ------------------------
 from math import radians
@@ -45,19 +45,20 @@ def timer(sw_c, sw_0, sw_1, fix_boundry=False):
 
 	return t
 
-def adjuster(v, s, t, st):
+def adjuster(v, s, t, d, st):
 	''' Readjust scale factor based on interpolation time
 	Args:
 		v(t0, t1) -> list(tuple((float, float), (float, float))...) : Joined coordinate arrays for both weights
 		s(sx, sy) -> tuple((float, float) : Scale factors (X, Y)
 		t(tx, ty) -> tuple((float, float) : Interpolation times (anisotropic X, Y) 
+		d(dx, dy) -> tuple((float, float) : Translation X, Y
 		st(stx0, stx1, sty0, sty1) -> tuple((float, float, float, float) : Stems widths for weights t0, t1
 		idx -> Int : Current width index
 
 	Returns:
 		tuple(float, float): Readjusted scale factors
 	'''
-	
+	from math import sqrt
 	# Helper
 	diff = lambda l, i: max(l, key=lambda x:x[i])[i] - min(l, key=lambda x:x[i])[i] 
 
@@ -70,6 +71,7 @@ def adjuster(v, s, t, st):
 
 	sx, sy = s 							# Scale X, Y
 	tx, ty = t 							# Interpolate time tx, ty
+	dx, dy = d 							# Translation dx, dy
 	stx0, stx1, sty0, sty1 = st 		# Stem Values
 
 	w0, w1 = diff(v0, 0), diff(v1, 0) 	# Widths
@@ -80,9 +82,9 @@ def adjuster(v, s, t, st):
 	wtx = lerp(w0, w1, tx)				# Interpolated width
 	hty = lerp(h0, h1, ty)				# Interpolated height
 
-	spx = float(wtx - w1 - w0*sx*(1-bx))/(bx*wtx - w1) #w0*sx = target width
-	spy = float(hty - h1 - h0*sy*(1-by))/(by*hty - h1)
-
+	spx = (w0*sx - w0*sx*bx - dx + bx*dx + w1 - wtx)/(w1 - bx*wtx)
+	spy = (h0*sy - h0*sy*by - dy + by*dx + h1 - hty)/(h1 - by*hty)
+	
 	return spx, spy
 
 # -- Adaptive scaling --------------------------------------------
