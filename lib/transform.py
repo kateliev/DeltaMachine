@@ -45,15 +45,14 @@ def timer(sw_c, sw_0, sw_1, fix_boundry=False):
 
 	return t
 
-def adjuster(v, s, t, d, st):
+def adjuster(v, w, h, t, d, st):
 	''' Readjust scale factor based on interpolation time
 	Args:
 		v(t0, t1) -> list(tuple((float, float), (float, float))...) : Joined coordinate arrays for both weights
-		s(sx, sy) -> tuple((float, float) : Scale factors (X, Y)
+		w, h -> Float: Target Width and Height
 		t(tx, ty) -> tuple((float, float) : Interpolation times (anisotropic X, Y) 
 		d(dx, dy) -> tuple((float, float) : Translation X, Y
 		st(stx0, stx1, sty0, sty1) -> tuple((float, float, float, float) : Stems widths for weights t0, t1
-		idx -> Int : Current width index
 
 	Returns:
 		tuple(float, float): Readjusted scale factors
@@ -69,7 +68,6 @@ def adjuster(v, s, t, d, st):
 		v0.append(i[0])
 		v1.append(i[1])
 
-	sx, sy = s 							# Scale X, Y
 	tx, ty = t 							# Interpolate time tx, ty
 	dx, dy = d 							# Translation dx, dy
 	stx0, stx1, sty0, sty1 = st 		# Stem Values
@@ -81,9 +79,9 @@ def adjuster(v, s, t, d, st):
 	by = float(sty1)/sty0				# Stem ratio Y
 	wtx = lerp(w0, w1, tx)				# Interpolated width
 	hty = lerp(h0, h1, ty)				# Interpolated height
-
-	spx = (w0*sx - w0*sx*bx - dx + bx*dx + w1 - wtx)/(w1 - bx*wtx)
-	spy = (h0*sy - h0*sy*by - dy + by*dx + h1 - hty)/(h1 - by*hty)
+	
+	spx = (w*(1 - bx) - dx*(1 + bx) + w1 - wtx)/(w1 - bx*wtx)
+	spy = (h*(1 - by) - dy*(1 + by) + h1 - hty)/(h1 - by*hty)
 	
 	return spx, spy
 
