@@ -26,7 +26,7 @@ from typerig.gui import getProcessGlyphs
 from typerig.brain import coordArray, linInterp, ratfrac
 
 from lib import transform
-from typerig.gui import trSliderCtrl, trMsgSimple
+from typerig.gui import TRSliderCtrl, TRMsgSimple
 
 
 # - Init --------------------------------
@@ -422,10 +422,10 @@ class dlg_DeltaMachine(QtGui.QDialog):
 		self.rad_font.toggled.connect(self.table_refresh)
 
 		# -- Sliders
-		self.mixer_dx = trSliderCtrl('1', '1000', '0', 1)
-		self.mixer_dy = trSliderCtrl('1', '1000', '0', 1)
-		self.scaler_dx = trSliderCtrl('1', '200', '100', 1)
-		self.scaler_dy = trSliderCtrl('1', '200', '100', 1)
+		self.mixer_dx = TRSliderCtrl('1', '1000', '0', 1)
+		self.mixer_dy = TRSliderCtrl('1', '1000', '0', 1)
+		self.scaler_dx = TRSliderCtrl('1', '200', '100', 1)
+		self.scaler_dy = TRSliderCtrl('1', '200', '100', 1)
 
 		self.mixer_dx.sld_axis.valueChanged.connect(lambda: self.process_scale(eGlyph(), anisotropic=self.chk_single.isChecked(), live_update=self.chk_preview.isChecked()))		
 		self.mixer_dy.sld_axis.valueChanged.connect(lambda: self.process_scale(eGlyph(), anisotropic=self.chk_single.isChecked(), live_update=self.chk_preview.isChecked()))		
